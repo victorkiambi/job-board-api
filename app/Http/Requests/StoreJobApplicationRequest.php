@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\JobPosting;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreJobApplicationRequest extends FormRequest
@@ -35,7 +36,16 @@ class StoreJobApplicationRequest extends FormRequest
                 if ($exists) {
                     $validator->errors()->add('job_posting_id', 'You have already applied to this job.');
                 }
+                $job = JobPosting::find($jobPostingId);
+                if ($job) {
+                    if ($job->status !== 'active') {
+                        $validator->errors()->add('job_posting_id', 'You cannot apply to a job that is not open.');
+                    }
+                    if ($job->expires_at && $job->expires_at < now()) {
+                        $validator->errors()->add('job_posting_id', 'You cannot apply to an expired job.');
+                    }
+                }
             }
         });
     }
-} 
+}

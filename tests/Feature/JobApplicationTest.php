@@ -18,7 +18,11 @@ class JobApplicationTest extends TestCase
     {
         $user = User::factory()->create(['user_type' => 'job_seeker']);
         $company = Company::factory()->create();
-        $job = JobPosting::factory()->create(['company_id' => $company->id]);
+        $job = JobPosting::factory()->create([
+            'company_id' => $company->id,
+            'status' => 'active',
+            'expires_at' => now()->addDays(10),
+        ]);
 
         $this->actingAs($user);
 
@@ -68,7 +72,7 @@ class JobApplicationTest extends TestCase
         $this->actingAs($user);
 
         $payload = [
-            'job_posting_id' => 999999, // unlikely to exist
+            'job_posting_id' => 999999,
             'cover_letter' => 'Non-existent job posting.',
         ];
 
@@ -322,5 +326,107 @@ class JobApplicationTest extends TestCase
         $this->assertDatabaseMissing('job_applications', [
             'id' => $application->id,
         ]);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function cannot_apply_to_inactive_filled_or_expired_job()
+    {
+        $company = Company::factory()->create();
+        $jobSeeker = User::factory()->create(['user_type' => 'job_seeker']);
+        $this->actingAs($jobSeeker);
+
+        // Inactive job
+        $inactiveJob = JobPosting::factory()->create([
+            'company_id' => $company->id,
+            'status' => 'inactive',
+            'expires_at' => now()->addDays(10),
+        ]);
+        $payload = [
+            'job_posting_id' => $inactiveJob->id,
+        ];
+        $response = $this->postJson('/api/v1/job-applications', $payload);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['job_posting_id']);
+        $this->assertStringContainsString('not open', $response->json('errors.job_posting_id.0'));
+
+        // Filled job
+        $filledJob = JobPosting::factory()->create([
+            'company_id' => $company->id,
+            'status' => 'filled',
+            'expires_at' => now()->addDays(10),
+        ]);
+        $payload = [
+            'job_posting_id' => $filledJob->id,
+        ];
+        $response = $this->postJson('/api/v1/job-applications', $payload);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['job_posting_id']);
+        $this->assertStringContainsString('not open', $response->json('errors.job_posting_id.0'));
+
+        // Expired job
+        $expiredJob = JobPosting::factory()->create([
+            'company_id' => $company->id,
+            'status' => 'active',
+            'expires_at' => now()->subDay(),
+        ]);
+        $payload = [
+            'job_posting_id' => $expiredJob->id,
+        ];
+        $response = $this->postJson('/api/v1/job-applications', $payload);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['job_posting_id']);
+        $this->assertStringContainsString('expired', $response->json('errors.job_posting_id.0'));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function only_job_seekers_can_apply_for_jobs()
+    {
+        $company = Company::factory()->create();
+        $job = JobPosting::factory()->create([
+            'company_id' => $company->id,
+            'status' => 'active',
+            'expires_at' => now()->addDays(10),
+        ]);
+        $companyUser = User::factory()->create(['user_type' => 'company']);
+        $this->actingAs($companyUser);
+        $payload = [
+            'job_posting_id' => $job->id,
+            'cover_letter' => 'Trying to apply as a company user.',
+        ];
+        $response = $this->postJson('/api/v1/job-applications', $payload);
+        $response->assertForbidden();
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function users_cannot_view_update_delete_applications_they_do_not_own()
+    {
+        $company = Company::factory()->create();
+        $job = JobPosting::factory()->create([
+            'company_id' => $company->id,
+            'status' => 'active',
+            'expires_at' => now()->addDays(10),
+        ]);
+        $owner = User::factory()->create(['user_type' => 'job_seeker']);
+        $otherUser = User::factory()->create(['user_type' => 'job_seeker']);
+        $application = JobApplication::factory()->create([
+            'user_id' => $owner->id,
+            'job_posting_id' => $job->id,
+            'cover_letter' => 'Owner application',
+        ]);
+
+        // Other user cannot view
+        $this->actingAs($otherUser);
+        $response = $this->getJson('/api/v1/job-applications/' . $application->id);
+        $response->assertForbidden();
+
+        // Other user cannot update
+        $response = $this->putJson('/api/v1/job-applications/' . $application->id, [
+            'cover_letter' => 'Malicious update',
+        ]);
+        $response->assertForbidden();
+
+        // Other user cannot delete
+        $response = $this->deleteJson('/api/v1/job-applications/' . $application->id);
+        $response->assertForbidden();
     }
 } 
