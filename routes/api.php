@@ -15,4 +15,6 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->apiResource('companies', \App\Http\Controllers\CompanyController::class);
     Route::middleware('auth:sanctum')->apiResource('job-postings', \App\Http\Controllers\JobPostingController::class);
     Route::middleware('auth:sanctum')->apiResource('job-applications', \App\Http\Controllers\JobApplicationController::class);
+    Route::middleware('auth:sanctum')->get('/dashboard/company/applications', [\App\Http\Controllers\JobApplicationController::class, 'companyDashboardApplications']);
+    Route::middleware('auth:sanctum')->get('/dashboard/job-seeker/applications', [\App\Http\Controllers\JobApplicationController::class, 'jobSeekerDashboardApplications']);
 });

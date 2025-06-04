@@ -49,4 +49,32 @@ class JobApplicationController extends Controller
         $jobApplication->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
+
+    public function companyDashboardApplications(Request $request)
+    {
+        $user = $request->user();
+        if ($user->user_type !== 'company') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+        $perPage = $request->query('per_page', 15);
+        $companyIds = $user->companies()->pluck('companies.id');
+        $jobPostingIds = \App\Models\JobPosting::whereIn('company_id', $companyIds)->pluck('id');
+        $applications = \App\Models\JobApplication::whereIn('job_posting_id', $jobPostingIds)
+            ->with(['user', 'jobPosting'])
+            ->paginate($perPage);
+        return JobApplicationResource::collection($applications);
+    }
+
+    public function jobSeekerDashboardApplications(Request $request)
+    {
+        $user = $request->user();
+        if ($user->user_type !== 'job_seeker') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+        $perPage = $request->query('per_page', 15);
+        $applications = \App\Models\JobApplication::where('user_id', $user->id)
+            ->with('jobPosting')
+            ->paginate($perPage);
+        return JobApplicationResource::collection($applications);
+    }
 } 
