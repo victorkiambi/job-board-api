@@ -4,6 +4,8 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\JobPostingResource;
+use App\Http\Resources\UserResource;
 
 class JobApplicationResource extends JsonResource
 {
@@ -13,6 +15,8 @@ class JobApplicationResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->user_id,
             'job_posting_id' => $this->job_posting_id,
+            'user' => new UserResource($this->whenLoaded('user') ?? $this->user),
+            'job_posting' => new JobPostingResource($this->whenLoaded('jobPosting') ?? $this->jobPosting),
             'cover_letter' => $this->cover_letter,
             'resume_path' => $this->resume_path,
             'additional_data' => $this->additional_data,

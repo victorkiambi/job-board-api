@@ -429,4 +429,57 @@ class JobApplicationTest extends TestCase
         $response = $this->deleteJson('/api/v1/job-applications/' . $application->id);
         $response->assertForbidden();
     }
+
+    public function test_company_user_can_view_applications_for_their_company_postings()
+    {
+        $company = \App\Models\Company::factory()->create(['company_name' => 'Acme Tech Solutions']);
+        $alice = \App\Models\User::factory()->create([
+            'email' => 'alice@acmetech.com',
+            'user_type' => 'company',
+            'password' => bcrypt('password123'),
+        ]);
+        $company->users()->attach($alice);
+
+        $posting = \App\Models\JobPosting::factory()->create([
+            'company_id' => $company->id,
+            'title' => 'Backend Developer',
+        ]);
+
+        $jobSeeker = \App\Models\User::factory()->create([
+            'email' => 'frank.miller@email.com',
+            'user_type' => 'job_seeker',
+        ]);
+        \App\Models\JobApplication::factory()->create([
+            'user_id' => $jobSeeker->id,
+            'job_posting_id' => $posting->id,
+        ]);
+
+        // Login as Alice
+        $response = $this->postJson('/api/v1/login', [
+            'email' => 'alice@acmetech.com',
+            'password' => 'password123',
+        ]);
+        $response->assertOk();
+        $token = $response->json('token') ?? $response->json('access_token');
+        $this->assertNotEmpty($token, 'Login did not return a token');
+
+        // Get applications as Alice
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/v1/dashboard/company/applications');
+        $response->assertOk();
+        $data = $response->json('data');
+        $this->assertNotEmpty($data, 'No applications returned for company user');
+
+        $found = false;
+        foreach ($data as $app) {
+            if (
+                isset($app['user']['email']) && $app['user']['email'] === 'frank.miller@email.com' &&
+                isset($app['job_posting']['title']) && $app['job_posting']['title'] === 'Backend Developer'
+            ) {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found, 'Expected application for Backend Developer by Frank Miller not found');
+    }
 } 

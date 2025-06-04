@@ -4,24 +4,39 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Company;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create company users and their companies
-        for ($i = 0; $i < 5; $i++) {
-            $companyUser = User::factory()->create([
+        User::updateOrCreate(
+            [ 'email' => 'alice@acmetech.com' ],
+            [
+                'name' => 'Alice Johnson',
+                'email' => 'alice@acmetech.com',
+                'password' => Hash::make('password123'),
                 'user_type' => 'company',
-            ]);
-            $company = Company::factory()->create();
-            $company->users()->attach($companyUser);
-        }
+                'profile_data' => [
+                    'phone' => '+1234567890',
+                    'contact_person' => 'Alice Johnson',
+                ],
+            ]
+        );
 
-        // Create job seekers
-        User::factory(10)->create([
-            'user_type' => 'job_seeker',
-        ]);
+        User::updateOrCreate(
+            [ 'email' => 'frank.miller@email.com' ],
+            [
+                'name' => 'Frank Miller',
+                'email' => 'frank.miller@email.com',
+                'password' => Hash::make('password123'),
+                'user_type' => 'job_seeker',
+                'profile_data' => [
+                    'phone' => '+15551234567',
+                    'skills' => ['PHP', 'Laravel', 'REST APIs'],
+                    'resume_url' => 'https://example.com/resume/frank-miller.pdf',
+                ],
+            ]
+        );
     }
 } 

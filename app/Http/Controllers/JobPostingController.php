@@ -22,7 +22,14 @@ class JobPostingController extends Controller
     public function index(Request $request)
     {
         $query = JobPosting::query();
+        $user = $request->user();
 
+        // If user is a company user, only show their company's postings
+        if ($user && $user->user_type === 'company') {
+            $companyIds = $user->companies()->pluck('companies.id');
+            $query->whereIn('company_id', $companyIds);
+        }
+        
         if ($request->filled('location')) {
             $query->where('location', 'like', '%' . $request->query('location') . '%');
         }

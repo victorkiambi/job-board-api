@@ -3,26 +3,27 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\JobApplication;
 use App\Models\User;
 use App\Models\JobPosting;
+use App\Models\JobApplication;
 
 class JobApplicationSeeder extends Seeder
 {
     public function run(): void
     {
-        $jobSeekerIds = User::where('user_type', 'job_seeker')->pluck('id');
-        $jobPostingIds = JobPosting::pluck('id');
+        $user = User::where('email', 'frank.miller@email.com')->first();
+        $job = JobPosting::where('title', 'Backend Developer')->first();
+        if (!$user || !$job) return;
 
-        foreach ($jobSeekerIds as $jobSeekerId) {
-            // Each job seeker applies to 3 unique random jobs
-            $jobsToApply = $jobPostingIds->random(min(3, $jobPostingIds->count()));
-            foreach ($jobsToApply as $jobPostingId) {
-                JobApplication::factory()->create([
-                    'user_id' => $jobSeekerId,
-                    'job_posting_id' => $jobPostingId,
-                ]);
-            }
-        }
+        JobApplication::updateOrCreate(
+            [ 'user_id' => $user->id, 'job_posting_id' => $job->id ],
+            [
+                'cover_letter' => 'I am passionate about backend development and have 5 years of experience.',
+                'resume_path' => 'https://example.com/resume/frank-miller.pdf',
+                'additional_data' => null,
+                'status' => 'pending',
+                'applied_at' => now()->subDays(2),
+            ]
+        );
     }
 } 
