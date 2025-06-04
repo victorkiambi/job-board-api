@@ -22,4 +22,20 @@ class StoreJobApplicationRequest extends FormRequest
             'applied_at' => 'nullable|date',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $user = $this->user();
+            $jobPostingId = $this->input('job_posting_id');
+            if ($user && $jobPostingId) {
+                $exists = \App\Models\JobApplication::where('user_id', $user->id)
+                    ->where('job_posting_id', $jobPostingId)
+                    ->exists();
+                if ($exists) {
+                    $validator->errors()->add('job_posting_id', 'You have already applied to this job.');
+                }
+            }
+        });
+    }
 } 

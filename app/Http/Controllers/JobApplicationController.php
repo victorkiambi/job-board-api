@@ -27,7 +27,9 @@ class JobApplicationController extends Controller
 
     public function store(StoreJobApplicationRequest $request)
     {
-        $application = JobApplication::create($request->validated());
+        $data = $request->validated();
+        $data['user_id'] = $request->user()->id;
+        $application = JobApplication::create($data);
         return new JobApplicationResource($application);
     }
 
