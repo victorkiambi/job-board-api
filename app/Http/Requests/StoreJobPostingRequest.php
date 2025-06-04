@@ -3,12 +3,20 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Company;
 
 class StoreJobPostingRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        if (!$this->has('company_id')) {
+            return true;
+        }
+        
+        $company = Company::find($this->input('company_id'));
+        return $company && $this->user()->user_type === 'company' 
+            && $this->user()->companies()->where('companies.id', $company->id)->exists();
+    
     }
 
     public function rules(): array

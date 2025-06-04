@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\JobPosting;
+use App\Models\Company;
 
 class JobPostingPolicy
 {
@@ -17,9 +18,10 @@ class JobPostingPolicy
         return true;
     }
 
-    public function create(User $user): bool
+    public function create(User $user, Company $company): bool
     {
-        return $user->user_type === 'company' && $user->companies()->exists();
+        return $user->user_type === 'company'
+            && $user->companies()->where('companies.id', $company->id)->exists();
     }
 
     public function update(User $user, JobPosting $jobPosting): bool

@@ -31,9 +31,9 @@ class JobPostingPolicyTest extends TestCase
         $otherCompanyUser = User::factory()->create(['user_type' => 'company']);
         $jobSeeker = User::factory()->create(['user_type' => 'job_seeker']);
 
-        $this->assertTrue($this->policy->create($companyUser));
-        $this->assertFalse($this->policy->create($otherCompanyUser));
-        $this->assertFalse($this->policy->create($jobSeeker));
+        $this->assertTrue($this->policy->create($companyUser, $company));
+        $this->assertFalse($this->policy->create($otherCompanyUser, $company));
+        $this->assertFalse($this->policy->create($jobSeeker, $company));
     }
 
     public function test_only_associated_company_users_can_update()

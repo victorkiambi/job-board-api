@@ -9,6 +9,7 @@ use App\Http\Requests\StoreJobPostingRequest;
 use App\Http\Requests\UpdateJobPostingRequest;
 use App\Http\Resources\JobPostingResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\Company;
 
 class JobPostingController extends Controller
 {
@@ -16,7 +17,6 @@ class JobPostingController extends Controller
 
     public function __construct()
     {
-        $this->authorizeResource(JobPosting::class, 'job_posting');
     }
 
     public function index(Request $request)
@@ -42,7 +42,10 @@ class JobPostingController extends Controller
 
     public function store(StoreJobPostingRequest $request)
     {
-        $job = JobPosting::create($request->validated());
+        $validated = $request->validated();
+        $company = Company::findOrFail($validated['company_id']);
+        $this->authorize('create', $company);
+        $job = JobPosting::create($validated);
         return new JobPostingResource($job);
     }
 
@@ -53,12 +56,14 @@ class JobPostingController extends Controller
 
     public function update(UpdateJobPostingRequest $request, JobPosting $jobPosting)
     {
+        $this->authorize('update', $jobPosting);
         $jobPosting->update($request->validated());
         return new JobPostingResource($jobPosting);
     }
 
     public function destroy(JobPosting $jobPosting)
     {
+        $this->authorize('delete', $jobPosting);
         $jobPosting->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }

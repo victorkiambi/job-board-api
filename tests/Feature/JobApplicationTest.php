@@ -265,4 +265,62 @@ class JobApplicationTest extends TestCase
         $this->assertFalse($ids->contains($job2->id));
         $this->assertFalse($ids->contains($job3->id));
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function only_owner_can_update_job_application()
+    {
+        $company = Company::factory()->create();
+        $job = JobPosting::factory()->create(['company_id' => $company->id]);
+        $owner = User::factory()->create(['user_type' => 'job_seeker']);
+        $otherUser = User::factory()->create(['user_type' => 'job_seeker']);
+        $application = JobApplication::factory()->create([
+            'user_id' => $owner->id,
+            'job_posting_id' => $job->id,
+            'cover_letter' => 'Original cover letter',
+        ]);
+
+        // Owner can update
+        $this->actingAs($owner);
+        $response = $this->putJson('/api/v1/job-applications/' . $application->id, [
+            'cover_letter' => 'Updated by owner',
+        ]);
+        $response->assertOk();
+        $this->assertEquals('Updated by owner', $response->json('data.cover_letter'));
+
+        // Other user cannot update
+        $this->actingAs($otherUser);
+        $response = $this->putJson('/api/v1/job-applications/' . $application->id, [
+            'cover_letter' => 'Malicious update',
+        ]);
+        $response->assertForbidden();
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function only_owner_can_delete_job_application()
+    {
+        $company = Company::factory()->create();
+        $job = JobPosting::factory()->create(['company_id' => $company->id]);
+        $owner = User::factory()->create(['user_type' => 'job_seeker']);
+        $otherUser = User::factory()->create(['user_type' => 'job_seeker']);
+        $application = JobApplication::factory()->create([
+            'user_id' => $owner->id,
+            'job_posting_id' => $job->id,
+        ]);
+
+        // Other user cannot delete
+        $this->actingAs($otherUser);
+        $response = $this->deleteJson('/api/v1/job-applications/' . $application->id);
+        $response->assertForbidden();
+        $this->assertDatabaseHas('job_applications', [
+            'id' => $application->id,
+        ]);
+
+        // Owner can delete
+        $this->actingAs($owner);
+        $response = $this->deleteJson('/api/v1/job-applications/' . $application->id);
+        $response->assertNoContent();
+        $this->assertDatabaseMissing('job_applications', [
+            'id' => $application->id,
+        ]);
+    }
 } 
