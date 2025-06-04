@@ -65,5 +65,15 @@ The API will be available at `http://localhost:8000`.
   ```
 - Feature and unit tests are included for core flows and policies.
 
+## API Documentation (Swagger UI)
+
+Interactive API documentation is available via Swagger UI:
+
+- **URL:** `http://localhost:8000/swagger`
+- The documentation is generated from the OpenAPI spec (`openapi.yaml`/`openapi.json`).
+- You can use this UI to explore endpoints, see request/response formats, and try out the API interactively (with authentication).
+
+If you update the OpenAPI spec, refresh the Swagger UI page to see the latest docs.
+
 ## License
 MIT 
