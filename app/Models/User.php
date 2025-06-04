@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'user_type',
+        'profile_data',
     ];
 
     /**
@@ -43,6 +45,27 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'profile_data' => 'array',
         ];
+    }
+
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'company_user');
+    }
+
+    public function jobApplications()
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
+    public function scopeJobSeekers($query)
+    {
+        return $query->where('user_type', 'job_seeker');
+    }
+
+    public function scopeCompanies($query)
+    {
+        return $query->where('user_type', 'company');
     }
 }
