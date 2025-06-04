@@ -46,6 +46,45 @@ A RESTful API for a simple job board built with Laravel 12. The system allows co
    ```bash
    php artisan migrate --seed
    ```
+
+### Seed Data
+After running the seeders, your database will include realistic, interconnected data for immediate testing:
+
+- **Company User**
+  - Name: Alice Johnson
+  - Email: alice@acmetech.com
+  - Password: password123
+  - User type: company
+  - Associated with: Acme Tech Solutions
+
+- **Company**
+  - Name: Acme Tech Solutions
+  - Description: A leading provider of innovative tech solutions.
+  - Website: https://acmetech.com
+  - Location: New York, NY
+  - Associated user: Alice Johnson
+
+- **Job Posting**
+  - Title: Backend Developer
+  - Company: Acme Tech Solutions
+  - Description: Join our team to build scalable backend APIs and services.
+  - Location: Remote
+  - Salary: $70,000 - $120,000
+  - Type: full_time
+  - Status: active
+
+- **Job Seeker**
+  - Name: Frank Miller
+  - Email: frank.miller@email.com
+  - Password: password123
+  - User type: job_seeker
+  - Profile: PHP, Laravel, REST APIs
+
+- **Sample Application**
+  - Frank Miller has already applied to the Backend Developer job posting with a cover letter and resume.
+
+You can use these accounts to log in and test company/job seeker flows immediately.
+
 6. **(Optional) Install JS dependencies and build assets:**
    ```bash
    npm install
@@ -57,6 +96,32 @@ A RESTful API for a simple job board built with Laravel 12. The system allows co
 php artisan serve
 ```
 The API will be available at `http://localhost:8000`.
+
+## Production Deployment (Fly.io)
+
+The application is deployed on Fly.io and can be accessed here:
+
+- [https://job-board-api-still-shape-9561.fly.dev/](https://job-board-api-still-shape-9561.fly.dev/)
+
+**Note:** If the site does not load on the first attempt, try again. This is a known issue with cold starts on Fly.io—sometimes the app needs a moment to start up if it has been idle.
+
+## Docker Support
+
+A `Dockerfile` is present in the project root for containerized development or deployment.
+
+### Basic Usage
+
+Build the image:
+```bash
+docker build -t job-board-api .
+```
+
+Run the container:
+```bash
+docker run --env-file .env -p 8000:8000 job-board-api
+```
+
+You may need to adjust volumes, ports, or environment variables for your setup.
 
 ## Testing
 - Run all tests:

@@ -82,45 +82,18 @@
       "JobPosting": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "company_id": {
-            "type": "integer"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "location": {
-            "type": "string"
-          },
-          "salary_min": {
-            "type": "number"
-          },
-          "salary_max": {
-            "type": "number"
-          },
-          "job_type": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "expires_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time"
-          }
+          "id": { "type": "integer" },
+          "company_id": { "type": "integer" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "location": { "type": "string" },
+          "salary_min": { "type": "number", "format": "float" },
+          "salary_max": { "type": "number", "format": "float" },
+          "job_type": { "type": "string", "enum": ["full_time", "part_time", "contract", "internship"] },
+          "status": { "type": "string", "enum": ["active", "inactive", "filled"] },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
         }
       },
       "JobApplication": {
@@ -467,33 +440,17 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "title",
-                  "description",
-                  "location",
-                  "salary_min",
-                  "salary_max",
-                  "job_type"
-                ],
+                "required": ["company_id", "title", "description", "location", "salary_min", "salary_max", "job_type"],
                 "properties": {
-                  "title": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "location": {
-                    "type": "string"
-                  },
-                  "salary_min": {
-                    "type": "number"
-                  },
-                  "salary_max": {
-                    "type": "number"
-                  },
-                  "job_type": {
-                    "type": "string"
-                  }
+                  "company_id": { "type": "integer" },
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "location": { "type": "string" },
+                  "salary_min": { "type": "number", "format": "float" },
+                  "salary_max": { "type": "number", "format": "float" },
+                  "job_type": { "type": "string", "enum": ["full_time", "part_time", "contract", "internship"] },
+                  "status": { "type": "string", "enum": ["active", "inactive", "filled"] },
+                  "expires_at": { "type": "string", "format": "date-time" }
                 }
               }
             }

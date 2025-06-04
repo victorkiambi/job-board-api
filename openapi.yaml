@@ -68,12 +68,16 @@ components:
           type: string
         salary_min:
           type: number
+          format: float
         salary_max:
           type: number
+          format: float
         job_type:
           type: string
+          enum: [full_time, part_time, contract, internship]
         status:
           type: string
+          enum: [active, inactive, filled]
         expires_at:
           type: string
           format: date-time
@@ -284,8 +288,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [title, description, location, salary_min, salary_max, job_type]
+              required: [company_id, title, description, location, salary_min, salary_max, job_type]
               properties:
+                company_id:
+                  type: integer
                 title:
                   type: string
                 description:
@@ -294,10 +300,19 @@ paths:
                   type: string
                 salary_min:
                   type: number
+                  format: float
                 salary_max:
                   type: number
+                  format: float
                 job_type:
                   type: string
+                  enum: [full_time, part_time, contract, internship]
+                status:
+                  type: string
+                  enum: [active, inactive, filled]
+                expires_at:
+                  type: string
+                  format: date-time
       responses:
         '201':
           description: Created
