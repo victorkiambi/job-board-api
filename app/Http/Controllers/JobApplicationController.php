@@ -9,6 +9,7 @@ use App\Http\Requests\StoreJobApplicationRequest;
 use App\Http\Requests\UpdateJobApplicationRequest;
 use App\Http\Resources\JobApplicationResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Log;
 
 class JobApplicationController extends Controller
 {
@@ -30,6 +31,11 @@ class JobApplicationController extends Controller
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
         $application = JobApplication::create($data);
+        Log::info('Job application submitted', [
+            'user_id' => $data['user_id'],
+            'job_posting_id' => $data['job_posting_id'],
+            'applied_at' => now()->toDateTimeString(),
+        ]);
         return new JobApplicationResource($application);
     }
 
