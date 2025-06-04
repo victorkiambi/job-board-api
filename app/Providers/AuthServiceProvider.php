@@ -8,6 +8,8 @@ use App\Models\Company;
 use App\Policies\CompanyPolicy;
 use App\Models\JobPosting;
 use App\Policies\JobPostingPolicy;
+use App\Models\JobApplication;
+use App\Policies\JobApplicationPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Company::class => CompanyPolicy::class,
         JobPosting::class => JobPostingPolicy::class,
+        JobApplication::class => JobApplicationPolicy::class,
     ];
 
     /**
