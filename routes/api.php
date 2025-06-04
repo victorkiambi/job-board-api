@@ -12,4 +12,5 @@ Route::prefix('v1')->group(function () {
         return $request->user();
     });
     Route::middleware('auth:sanctum')->apiResource('companies', \App\Http\Controllers\CompanyController::class);
+    Route::middleware('auth:sanctum')->apiResource('job-postings', \App\Http\Controllers\JobPostingController::class);
 });
