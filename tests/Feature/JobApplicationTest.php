@@ -191,4 +191,78 @@ class JobApplicationTest extends TestCase
         $this->assertEquals(1, $response2->json('meta.per_page'));
         $this->assertEquals(1, count($response2->json('data')));
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function test_job_listing_filter_by_location()
+    {
+        $company = Company::factory()->create();
+        $job1 = JobPosting::factory()->create(['company_id' => $company->id, 'location' => 'New York']);
+        $job2 = JobPosting::factory()->create(['company_id' => $company->id, 'location' => 'San Francisco']);
+        $job3 = JobPosting::factory()->create(['company_id' => $company->id, 'location' => 'Yorkshire']);
+        $this->actingAs(User::factory()->create(['user_type' => 'job_seeker']));
+        $response = $this->getJson('/api/v1/job-postings?location=York');
+        $response->assertOk();
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($job1->id));
+        $this->assertTrue($ids->contains($job3->id));
+        $this->assertFalse($ids->contains($job2->id));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function test_job_listing_filter_by_job_type()
+    {
+        $company = Company::factory()->create();
+        $job1 = JobPosting::factory()->create(['company_id' => $company->id, 'job_type' => 'full_time']);
+        $job2 = JobPosting::factory()->create(['company_id' => $company->id, 'job_type' => 'part_time']);
+        $this->actingAs(User::factory()->create(['user_type' => 'job_seeker']));
+        $response = $this->getJson('/api/v1/job-postings?job_type=full_time');
+        $response->assertOk();
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($job1->id));
+        $this->assertFalse($ids->contains($job2->id));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function test_job_listing_filter_by_salary_min()
+    {
+        $company = Company::factory()->create();
+        $job1 = JobPosting::factory()->create(['company_id' => $company->id, 'salary_max' => 50000]);
+        $job2 = JobPosting::factory()->create(['company_id' => $company->id, 'salary_max' => 80000]);
+        $this->actingAs(User::factory()->create(['user_type' => 'job_seeker']));
+        $response = $this->getJson('/api/v1/job-postings?salary_min=60000');
+        $response->assertOk();
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertFalse($ids->contains($job1->id));
+        $this->assertTrue($ids->contains($job2->id));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function test_job_listing_filter_by_salary_max()
+    {
+        $company = Company::factory()->create();
+        $job1 = JobPosting::factory()->create(['company_id' => $company->id, 'salary_min' => 30000]);
+        $job2 = JobPosting::factory()->create(['company_id' => $company->id, 'salary_min' => 70000]);
+        $this->actingAs(User::factory()->create(['user_type' => 'job_seeker']));
+        $response = $this->getJson('/api/v1/job-postings?salary_max=40000');
+        $response->assertOk();
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($job1->id));
+        $this->assertFalse($ids->contains($job2->id));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function test_job_listing_filter_combined()
+    {
+        $company = Company::factory()->create();
+        $job1 = JobPosting::factory()->create(['company_id' => $company->id, 'location' => 'Remote', 'job_type' => 'contract', 'salary_min' => 40000, 'salary_max' => 60000]);
+        $job2 = JobPosting::factory()->create(['company_id' => $company->id, 'location' => 'Remote', 'job_type' => 'full_time', 'salary_min' => 30000, 'salary_max' => 50000]);
+        $job3 = JobPosting::factory()->create(['company_id' => $company->id, 'location' => 'Onsite', 'job_type' => 'contract', 'salary_min' => 40000, 'salary_max' => 60000]);
+        $this->actingAs(User::factory()->create(['user_type' => 'job_seeker']));
+        $response = $this->getJson('/api/v1/job-postings?location=Remote&job_type=contract&salary_min=50000&salary_max=60000');
+        $response->assertOk();
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($job1->id));
+        $this->assertFalse($ids->contains($job2->id));
+        $this->assertFalse($ids->contains($job3->id));
+    }
 } 

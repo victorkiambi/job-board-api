@@ -19,9 +19,24 @@ class JobPostingController extends Controller
         $this->authorizeResource(JobPosting::class, 'job_posting');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $jobs = JobPosting::all();
+        $query = JobPosting::query();
+
+        if ($request->filled('location')) {
+            $query->where('location', 'like', '%' . $request->query('location') . '%');
+        }
+        if ($request->filled('job_type')) {
+            $query->where('job_type', $request->query('job_type'));
+        }
+        if ($request->filled('salary_min')) {
+            $query->where('salary_max', '>=', $request->query('salary_min'));
+        }
+        if ($request->filled('salary_max')) {
+            $query->where('salary_min', '<=', $request->query('salary_max'));
+        }
+
+        $jobs = $query->get();
         return JobPostingResource::collection($jobs);
     }
 
