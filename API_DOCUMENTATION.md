@@ -65,12 +65,15 @@ GET /api/v1/job-postings?location=Nairobi&job_type=full_time&salary_min=50000
 ```json
 POST /api/v1/job-postings
 {
+  "company_id": 1,
   "title": "Backend Developer",
   "description": "Develop APIs...",
   "location": "Nairobi",
   "salary_min": 50000,
   "salary_max": 80000,
-  "job_type": "full_time"
+  "job_type": "full_time",
+  "status": "active",
+  "expires_at": "2024-12-31T23:59:59Z"
 }
 ```
 
@@ -90,7 +93,8 @@ POST /api/v1/job-postings
 POST /api/v1/job-applications
 {
   "job_posting_id": 1,
-  "cover_letter": "I am interested in this job."
+  "cover_letter": "I am interested in this job.",
+  "resume_path": "https://example.com/resume.pdf"
 }
 ```
 
@@ -99,8 +103,79 @@ POST /api/v1/job-applications
 ### 4. Dashboards
 | Method | Endpoint                                         | Description                        |
 |--------|--------------------------------------------------|------------------------------------|
-| GET    | /api/v1/dashboard/company/applications           | Company: view all applications     |
-| GET    | /api/v1/dashboard/job-seeker/applications        | Job seeker: view own applications  |
+| GET    | /api/v1/dashboard/company/applications           | Company: view all applications for their jobs (company only) |
+| GET    | /api/v1/dashboard/job-seeker/applications        | Job seeker: view all their applications (job seeker only)    |
+
+#### 4.1 Company Dashboard: View All Applications
+- **Endpoint:** `/api/v1/dashboard/company/applications`
+- **Method:** GET
+- **Auth Required:** Yes (company user)
+- **Description:** Returns a paginated list of all job applications submitted to jobs posted by the authenticated company user.
+- **Query Params:** `per_page` (optional, default: 15)
+
+**Example Request:**
+```
+GET /api/v1/dashboard/company/applications?per_page=10
+Authorization: Bearer <token>
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "user": { "id": 5, "name": "Frank Miller", ... },
+      "job_posting": { "id": 2, "title": "Backend Developer", ... },
+      "cover_letter": "I am passionate about backend development...",
+      "status": "pending",
+      "applied_at": "2024-06-10T12:34:56Z"
+    }
+    // ...
+  ],
+  "links": { ... },
+  "meta": { ... }
+}
+```
+
+#### 4.2 Job Seeker Dashboard: View Own Applications
+- **Endpoint:** `/api/v1/dashboard/job-seeker/applications`
+- **Method:** GET
+- **Auth Required:** Yes (job seeker user)
+- **Description:** Returns a paginated list of all job applications submitted by the authenticated job seeker.
+- **Query Params:** `per_page` (optional, default: 15)
+
+**Example Request:**
+```
+GET /api/v1/dashboard/job-seeker/applications?per_page=10
+Authorization: Bearer <token>
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "job_posting": { "id": 2, "title": "Backend Developer", ... },
+      "cover_letter": "I am passionate about backend development...",
+      "status": "pending",
+      "applied_at": "2024-06-10T12:34:56Z"
+    }
+    // ...
+  ],
+  "links": { ... },
+  "meta": { ... }
+}
+```
+
+---
+
+### 5. Swagger UI & OpenAPI
+- **Local:** http://localhost:8000/swagger
+- The documentation is generated from the OpenAPI spec (`openapi.yaml`/`resources/swagger/openapi.json`).
+- If you update the OpenAPI spec, refresh the Swagger UI page to see the latest docs.
+- **Note:** In production, access to Swagger UI may be restricted for security. See `app/Providers/SwaggerUiServiceProvider.php` for details.
 
 ---
 
@@ -115,4 +190,5 @@ POST /api/v1/job-applications
 ## Notes
 - All request/response bodies are JSON.
 - Use the `Authorization: Bearer <token>` header for all protected endpoints.
-- See API Resources and Form Requests in the codebase for detailed validation rules and response structures. 
+- See API Resources and Form Requests in the codebase for detailed validation rules and response structures.
+- All job posting fields: `company_id`, `title`, `description`, `location`, `salary_min`, `salary_max`, `job_type`, `status`, `expires_at`, `created_at`, `updated_at`. 
